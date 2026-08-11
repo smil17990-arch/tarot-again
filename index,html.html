@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TAROT // AGAIN</title>
+<meta name="description" content="絵を描かないタロット。線と円と点だけの大アルカナ22枚と、22の問い。気分で何度でも引き直せる「TAROT // AGAIN」。">
+<meta name="theme-color" content="#07080d">
+<style>
+  :root{
+    --bg: #07080d;
+    --bg-2: #0c0f18;
+    --line-strong: #6fa8ff;
+    --line-soft: #2a3a63;
+    --glow: rgba(111,168,255,0.35);
+    --text: #eef0f5;
+    --text-dim: #a6b0d1;
+    --text-faint: #737fa8;
+    --serif: "Zen Old Mincho", "Noto Serif JP", "Hiragino Mincho ProN", serif;
+    --mono: "JetBrains Mono", "Courier New", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, #0e1420 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+  }
+  a{color:inherit;}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:22px 26px 0;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--text-dim);
+  }
+  .brand{
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.2em;
+  }
+  .brand b{color:var(--line-strong); font-weight:500;}
+  .tag{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    color:var(--text-faint);
+    border:1px solid var(--line-soft);
+    border-radius:20px;
+    padding:4px 10px;
+  }
+
+  main{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px 20px 40px;
+  }
+
+  .stage{
+    width:100%;
+    max-width:460px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .numeral{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.3em;
+    color:var(--text-faint);
+    margin-bottom:6px;
+  }
+  .geo-wrap{
+    width:min(78vw, 300px);
+    height:min(78vw, 300px);
+    margin:8px 0 6px;
+    filter:drop-shadow(0 0 18px var(--glow));
+  }
+  .geo-wrap svg{width:100%; height:100%; overflow:visible;}
+  .geo-wrap svg [data-geo]{
+    fill:none;
+    stroke:var(--line-strong);
+    stroke-width:1.4;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .geo-wrap svg [data-geo].soft{ stroke:var(--line-soft); }
+  .geo-wrap svg [data-fill]{
+    fill:var(--line-strong);
+    stroke:none;
+  }
+  .question{
+    font-size:22px;
+    line-height:1.75;
+    font-weight:500;
+    margin:22px 6px 10px;
+    min-height:2.6em;
+    opacity:0;
+    transform:translateY(6px);
+  }
+  .cardname{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    color:var(--text-dim);
+    opacity:0;
+    transform:translateY(6px);
+  }
+  .question.reveal, .cardname.reveal{
+    transition:opacity .6s ease, transform .6s ease;
+    opacity:1;
+    transform:translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .question, .cardname{opacity:1; transform:none;}
+  }
+
+  .redraw{
+    margin-top:34px;
+    background:none;
+    border:1px solid var(--line-soft);
+    color:var(--text-dim);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    padding:12px 28px;
+    border-radius:2px;
+    cursor:pointer;
+    transition:.3s;
+  }
+  .redraw:hover{border-color:var(--line-strong); color:var(--line-strong); box-shadow:0 0 14px var(--glow);}
+  .redraw:active{transform:scale(.98);}
+
+  .hint{
+    margin-top:14px;
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:.08em;
+    color:var(--text-faint);
+  }
+
+  .listlink{
+    margin-top:28px;
+    background:none;
+    border:none;
+    color:var(--text-faint);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+    padding:4px 2px;
+    transition:color .3s;
+  }
+  .listlink:hover{color:var(--line-strong);}
+
+  /* ---------- 22-card list view ---------- */
+  .listview{
+    width:100%;
+    max-width:520px;
+  }
+  .listview .back{
+    background:none;
+    border:none;
+    color:var(--text-faint);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    cursor:pointer;
+    padding:4px 2px;
+    margin-bottom:22px;
+    transition:color .3s;
+  }
+  .listview .back:hover{color:var(--line-strong);}
+  .listview h2{
+    font-family:var(--mono);
+    font-weight:400;
+    font-size:12px;
+    letter-spacing:.18em;
+    color:var(--text-dim);
+    margin:0 0 20px;
+    text-align:center;
+  }
+  .listrow{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:none;
+    border:none;
+    border-top:1px solid var(--line-soft);
+    color:var(--text);
+    text-align:left;
+    padding:14px 4px;
+    cursor:pointer;
+    font-family:var(--serif);
+  }
+  .listview .listrow:last-child{border-bottom:1px solid var(--line-soft);}
+  .listrow:hover{background:rgba(111,168,255,0.06);}
+  .listrow .ln{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-faint);
+    width:34px;
+    flex:none;
+  }
+  .listrow .lbody{flex:1; min-width:0;}
+  .listrow .lname{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    color:var(--text-dim);
+  }
+  .listrow .lq{font-size:14px; margin-top:2px;}
+
+  .hidden{display:none !important;}
+
+  footer{
+    text-align:center;
+    padding:18px 20px 26px;
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:.08em;
+    color:var(--text-faint);
+  }
+  footer a{color:var(--text-faint); text-decoration:underline; text-underline-offset:2px;}
+  footer a:hover{color:var(--line-strong);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">TAROT // <b>AGAIN</b></div>
+</header>
+
+<main>
+  <div class="stage" id="view-stage">
+    <div class="numeral" id="numeral"></div>
+    <div class="geo-wrap" id="geo"></div>
+    <div class="question" id="question"></div>
+    <div class="cardname" id="cardname"></div>
+
+    <button class="redraw" id="redraw">もう一度引く</button>
+    <div class="hint">気分で何度でも。記録は残しません。</div>
+    <button class="listlink" id="showlist">22の問いを見る</button>
+  </div>
+
+  <div class="listview hidden" id="view-list">
+    <button class="back" id="backbtn">← 戻る</button>
+    <h2>22の問い</h2>
+    <div id="listbody"></div>
+  </div>
+</main>
+
+<footer>
+  絵を描かないタロット、22の鏡。「TAROT // AGAIN」は<a href="https://note.com/vortex951" target="_blank" rel="noopener">TAROT // QUESTION</a>の気軽版、記録付きの「1日1問」版は<a href="../tarot-question/">こちら</a><br>
+  original series “TAROT // QUESTION” by <a href="https://note.com/vortex951" target="_blank" rel="noopener">無限納豆</a>（文：Claude）
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const CARDS = [
+    { n:"0", name:"THE FOOL", q:"何から踏み出しますか。",
+      geo:[
+        {t:"circle", cx:95, cy:85, r:48, soft:true},
+        {t:"line", x1:95, y1:133, x2:150, y2:172},
+        {t:"circle", cx:154, cy:176, r:3, fill:true}
+      ]},
+    { n:"I", name:"THE MAGICIAN", q:"何を使えますか。",
+      geo:[
+        {t:"line", x1:100, y1:24, x2:100, y2:176},
+        {t:"line", x1:24, y1:100, x2:176, y2:100},
+        {t:"circle", cx:100, cy:100, r:6, fill:true}
+      ]},
+    { n:"II", name:"THE HIGH PRIESTESS", q:"何を黙っていますか。",
+      geo:[
+        {t:"line", x1:68, y1:34, x2:68, y2:166},
+        {t:"line", x1:132, y1:34, x2:132, y2:166},
+        {t:"circle", cx:100, cy:100, r:22}
+      ]},
+    { n:"III", name:"THE EMPRESS", q:"何を育てていますか。",
+      geo:[
+        {t:"circle", cx:100, cy:100, r:52, soft:true},
+        {t:"circle", cx:100, cy:52, r:3, fill:true},
+        {t:"circle", cx:141, cy:76, r:3, fill:true},
+        {t:"circle", cx:141, cy:124, r:3, fill:true},
+        {t:"circle", cx:100, cy:148, r:3, fill:true},
+        {t:"circle", cx:59, cy:124, r:3, fill:true},
+        {t:"circle", cx:59, cy:76, r:3, fill:true}
+      ]},
+    { n:"IV", name:"THE EMPEROR", q:"何を守っていますか。",
+      geo:[
+        {t:"rect", x:55, y:55, w:90, h:90}
+      ]},
+    { n:"V", name:"THE HIEROPHANT", q:"誰の言葉に従っていますか。",
+      geo:[
+        {t:"line", x1:75, y1:24, x2:75, y2:176},
+        {t:"line", x1:125, y1:24, x2:125, y2:176},
+        {t:"line", x1:75, y1:60, x2:125, y2:60}
+      ]},
+    { n:"VI", name:"THE LOVERS", q:"何を選びますか。",
+      geo:[
+        {t:"circle", cx:82, cy:100, r:44},
+        {t:"circle", cx:118, cy:100, r:44}
+      ]},
+    { n:"VII", name:"THE CHARIOT", q:"どこへ向かっていますか。",
+      geo:[
+        {t:"rect", x:62, y:44, w:76, h:56},
+        {t:"circle", cx:76, cy:142, r:16},
+        {t:"circle", cx:124, cy:142, r:16}
+      ]},
+    { n:"VIII", name:"STRENGTH", q:"何と共存していますか。",
+      geo:[
+        {t:"path", d:"M100,100 C70,70 40,100 70,120 C100,140 100,100 130,80 C160,60 160,100 130,120 C100,140 130,130 100,100 Z"}
+      ]},
+    { n:"IX", name:"THE HERMIT", q:"何を探していますか。",
+      geo:[
+        {t:"circle", cx:100, cy:100, r:4, fill:true},
+        {t:"line", x1:100, y1:100, x2:100, y2:26}
+      ]},
+    { n:"X", name:"WHEEL OF FORTUNE", q:"何が巡ってきましたか。",
+      geo:[
+        {t:"circle", cx:100, cy:100, r:58},
+        {t:"line", x1:100, y1:42, x2:100, y2:158, soft:true},
+        {t:"line", x1:42, y1:100, x2:158, y2:100, soft:true},
+        {t:"line", x1:59, y1:59, x2:141, y2:141, soft:true},
+        {t:"line", x1:141, y1:59, x2:59, y2:141, soft:true}
+      ]},
+    { n:"XI", name:"JUSTICE", q:"何と釣り合っていますか。",
+      geo:[
+        {t:"line", x1:30, y1:70, x2:170, y2:70},
+        {t:"line", x1:100, y1:70, x2:100, y2:164},
+        {t:"circle", cx:30, cy:70, r:14},
+        {t:"circle", cx:170, cy:70, r:14}
+      ]},
+    { n:"XII", name:"THE HANGED MAN", q:"何を手放せずにいますか。",
+      geo:[
+        {t:"line", x1:40, y1:40, x2:160, y2:40},
+        {t:"line", x1:100, y1:40, x2:100, y2:132},
+        {t:"path", d:"M76,132 L124,132 L100,170 Z"}
+      ]},
+    { n:"XIII", name:"DEATH", q:"何が終わりましたか。",
+      geo:[
+        {t:"line", x1:26, y1:100, x2:82, y2:100},
+        {t:"line", x1:118, y1:100, x2:174, y2:100},
+        {t:"circle", cx:100, cy:100, r:2, fill:true}
+      ]},
+    { n:"XIV", name:"TEMPERANCE", q:"何と何を混ぜていますか。",
+      geo:[
+        {t:"circle", cx:68, cy:100, r:34},
+        {t:"circle", cx:132, cy:100, r:34},
+        {t:"path", d:"M68,70 C110,85 90,115 132,130", soft:true}
+      ]},
+    { n:"XV", name:"THE DEVIL", q:"何に囚われていますか。",
+      geo:[
+        {t:"circle", cx:70, cy:100, r:24},
+        {t:"circle", cx:100, cy:100, r:24},
+        {t:"circle", cx:130, cy:100, r:24},
+        {t:"path", d:"M52,118 C70,150 130,150 148,118", soft:true}
+      ]},
+    { n:"XVI", name:"THE TOWER", q:"何が崩れましたか。",
+      geo:[
+        {t:"rect", x:84, y:26, w:32, h:118},
+        {t:"line", x1:84, y1:60, x2:116, y2:90},
+        {t:"line", x1:70, y1:158, x2:86, y2:172},
+        {t:"line", x1:112, y1:160, x2:130, y2:176}
+      ]},
+    { n:"XVII", name:"THE STAR", q:"何を信じますか。",
+      geo:[
+        {t:"circle", cx:100, cy:82, r:7, fill:true},
+        {t:"line", x1:100, y1:44, x2:100, y2:64},
+        {t:"line", x1:100, y1:100, x2:100, y2:120},
+        {t:"line", x1:62, y1:82, x2:82, y2:82},
+        {t:"line", x1:118, y1:82, x2:138, y2:82},
+        {t:"line", x1:73, y1:55, x2:87, y2:69},
+        {t:"line", x1:113, y1:95, x2:127, y2:109},
+        {t:"line", x1:127, y1:55, x2:113, y2:69},
+        {t:"line", x1:87, y1:95, x2:73, y2:109},
+        {t:"circle", cx:56, cy:142, r:2, fill:true},
+        {t:"circle", cx:146, cy:150, r:2, fill:true},
+        {t:"circle", cx:120, cy:160, r:2, fill:true}
+      ]},
+    { n:"XVIII", name:"THE MOON", q:"何を見誤っていますか。",
+      geo:[
+        {t:"circle", cx:104, cy:96, r:42},
+        {t:"circle", cx:122, cy:88, r:42, soft:true},
+        {t:"circle", cx:52, cy:160, r:2, fill:true},
+        {t:"circle", cx:80, cy:170, r:2, fill:true},
+        {t:"circle", cx:108, cy:168, r:2, fill:true},
+        {t:"circle", cx:136, cy:158, r:2, fill:true}
+      ]},
+    { n:"XIX", name:"THE SUN", q:"何が明らかですか。",
+      geo:[
+        {t:"circle", cx:100, cy:100, r:32},
+        {t:"line", x1:100, y1:20, x2:100, y2:44},
+        {t:"line", x1:100, y1:156, x2:100, y2:180},
+        {t:"line", x1:20, y1:100, x2:44, y2:100},
+        {t:"line", x1:156, y1:100, x2:180, y2:100},
+        {t:"line", x1:43, y1:43, x2:59, y2:59},
+        {t:"line", x1:141, y1:141, x2:157, y2:157},
+        {t:"line", x1:157, y1:43, x2:141, y2:59},
+        {t:"line", x1:59, y1:141, x2:43, y2:157}
+      ]},
+    { n:"XX", name:"JUDGEMENT", q:"何を裁いていますか。",
+      geo:[
+        {t:"circle", cx:100, cy:36, r:14},
+        {t:"line", x1:70, y1:170, x2:70, y2:76},
+        {t:"line", x1:100, y1:170, x2:100, y2:60},
+        {t:"line", x1:130, y1:170, x2:130, y2:76}
+      ]},
+    { n:"XXI", name:"THE WORLD", q:"何が完成しましたか。",
+      geo:[
+        {t:"circle", cx:100, cy:100, r:62},
+        {t:"path", d:"M100,50 L150,100 L100,150 L50,100 Z"}
+      ]}
+  ];
+
+  const NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs){
+    const el = document.createElementNS(NS, tag);
+    for(const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  function buildGeometry(card){
+    const svg = svgEl("svg", {viewBox:"0 0 200 200"});
+    const n = card.geo.length || 1;
+    // spread each shape's draw-in across a fixed ~0.7s window regardless of
+    // how many shapes the card has, so every card's geometry finishes in
+    // roughly the same amount of time (~1.1-1.2s total).
+    card.geo.forEach((p, i)=>{
+      let el;
+      if(p.t === "circle"){
+        el = svgEl("circle", {cx:p.cx, cy:p.cy, r:p.r});
+      } else if(p.t === "line"){
+        el = svgEl("line", {x1:p.x1, y1:p.y1, x2:p.x2, y2:p.y2});
+      } else if(p.t === "rect"){
+        el = svgEl("rect", {x:p.x, y:p.y, width:p.w, height:p.h});
+      } else if(p.t === "path"){
+        el = svgEl("path", {d:p.d});
+      }
+      if(!el) return;
+      if(p.fill){
+        el.setAttribute("data-fill", "1");
+      } else {
+        el.setAttribute("data-geo", "1");
+        if(p.soft) el.classList.add("soft");
+      }
+      svg.appendChild(el);
+
+      const delay = 0.05 + (i / n) * 0.7;
+
+      try{
+        const len = el.getTotalLength();
+        el.style.strokeDasharray = len;
+        el.style.strokeDashoffset = len;
+        el.style.transition = "stroke-dashoffset .5s cubic-bezier(.4,.1,.2,1)";
+        el.style.transitionDelay = delay + "s";
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          el.style.strokeDashoffset = "0";
+        }));
+      }catch(e){ /* getTotalLength unsupported for filled elements: skip */ }
+
+      if(p.fill){
+        el.style.opacity = "0";
+        el.style.transition = "opacity .4s ease";
+        el.style.transitionDelay = delay + "s";
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          el.style.opacity = "1";
+        }));
+      }
+    });
+    return svg;
+  }
+
+  let lastIndex = -1;
+  function pickCard(){
+    let idx = Math.floor(Math.random() * CARDS.length);
+    // avoid immediately repeating the same card twice in a row
+    if(CARDS.length > 1 && idx === lastIndex){
+      idx = (idx + 1 + Math.floor(Math.random() * (CARDS.length - 1))) % CARDS.length;
+    }
+    lastIndex = idx;
+    return CARDS[idx];
+  }
+
+  const numeralEl = document.getElementById("numeral");
+  const questionEl = document.getElementById("question");
+  const cardnameEl = document.getElementById("cardname");
+  const geoEl = document.getElementById("geo");
+
+  let revealTimers = [];
+  function clearRevealTimers(){
+    revealTimers.forEach(t => clearTimeout(t));
+    revealTimers = [];
+  }
+
+  // Staged reveal, ~2.2s total: geometry draws itself first, then the
+  // card name fades in, and finally the Japanese question fades in last.
+  function renderCard(card){
+    clearRevealTimers();
+
+    numeralEl.textContent = card.n;
+    geoEl.innerHTML = "";
+    geoEl.appendChild(buildGeometry(card));
+
+    // reset name/question to hidden before their turn comes
+    cardnameEl.classList.remove("reveal");
+    questionEl.classList.remove("reveal");
+    cardnameEl.textContent = card.name;
+    questionEl.textContent = card.q;
+
+    revealTimers.push(setTimeout(()=>{
+      cardnameEl.classList.add("reveal");
+    }, 1250));
+
+    revealTimers.push(setTimeout(()=>{
+      questionEl.classList.add("reveal");
+    }, 1750));
+  }
+
+  function draw(){
+    const card = pickCard();
+    renderCard(card);
+  }
+
+  document.getElementById("redraw").addEventListener("click", draw);
+
+  /* ---------------------------------------------------------
+     22-card list view (browse only — does not affect random draw)
+  --------------------------------------------------------- */
+  const viewStage = document.getElementById("view-stage");
+  const viewList = document.getElementById("view-list");
+  const listBody = document.getElementById("listbody");
+
+  function buildList(){
+    listBody.innerHTML = "";
+    CARDS.forEach((card, idx)=>{
+      const row = document.createElement("button");
+      row.className = "listrow";
+      row.innerHTML = `
+        <span class="ln">${card.n}</span>
+        <span class="lbody">
+          <span class="lname">${card.name}</span>
+          <div class="lq">${card.q}</div>
+        </span>
+      `;
+      row.addEventListener("click", ()=>{
+        lastIndex = idx;
+        renderCard(card);
+        viewList.classList.add("hidden");
+        viewStage.classList.remove("hidden");
+      });
+      listBody.appendChild(row);
+    });
+  }
+  buildList();
+
+  document.getElementById("showlist").addEventListener("click", ()=>{
+    viewStage.classList.add("hidden");
+    viewList.classList.remove("hidden");
+  });
+  document.getElementById("backbtn").addEventListener("click", ()=>{
+    viewList.classList.add("hidden");
+    viewStage.classList.remove("hidden");
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>
